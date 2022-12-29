@@ -2,9 +2,9 @@ use walkdir::{WalkDir,DirEntry};
 use std::fs::File;
 use std::io::prelude::*;
 use scraper::{Html,Selector};
-use regex::Regex;
+use regex::{Regex};
 use csv::{Writer, Reader};
-
+use chrono::Month;
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -19,7 +19,6 @@ enum Citations{
 #[allow(dead_code)]
 struct Divisions{
     cases: Vec<Jurisprudence>,
-
 }
 
 #[allow(dead_code)]
@@ -44,12 +43,18 @@ struct PseudoJuris {
     title: String,
     url: String,
     jargons: Vec<usize>,
+    year: String,
+    month: String,
+    day: String,
 }
+
 #[derive(Clone)]
 struct Jargon {
     title: String,
     id: usize,
 }
+
+
 fn get_all_files() -> Vec<DirEntry> {
     
     let mut files = Vec::new();
@@ -122,12 +127,38 @@ fn get_juris_details(input: &DirEntry, jargons: Vec<Jargon>) -> PseudoJuris {
     }
 
 
+    //h4 selector selects GR Number.
+    let h4_selector = Selector::parse("h4")
+                               .expect("Error Found here");
+    let h4_element = &mut html.select(&h4_selector)
+                                .next()
+                                .expect("selecting the title failed");
+    let date_regex = Regex::new("\\w+\\s\\d{2},\\s\\d{4}").unwrap();
+    let h4_text =  String::from(h4_element.inner_html());
 
+    let h4_cap = date_regex.captures(&h4_text).unwrap_or(date_regex.captures("January 01, 1800").unwrap());
+    let date = h4_cap.get(0).map_or("".to_string(), |m| m.as_str().to_string());
+    
+
+    let year = date.split(",").nth(1).unwrap().to_string();
+    let month = date.split(",")
+                        .nth(0).unwrap()
+                        .split(" ")
+                        .nth(0).unwrap()
+                        .parse::<Month>().unwrap()
+                        .number_from_month()
+                        .to_string();
+    let day = date.split(",").nth(0).unwrap().split(" ").nth(1).unwrap().to_string();
+        
     let output = PseudoJuris{
         title: result.to_string(),
         url: input.path().display().to_string(),
         jargons: juris_jargons,
-    }; 
+        year: year,
+        month: month,
+        day: day,
+    };
+    
 
 
 
@@ -190,6 +221,25 @@ fn get_juris_details(input: &DirEntry, jargons: Vec<Jargon>) -> PseudoJuris {
 //
 //}
 
+/*fn main() {
+    let mut juris_rdr = Reader::from_path("jargon.csv").unwrap();
+    let mut jargons = vec![];
+    for record in juris_rdr.records().skip(1) {
+        let record_data = record.unwrap();
+        jargons.push(Jargon {
+            id: record_data
+                .get(1)
+                .unwrap().to_string().parse().unwrap(),
+                
+    //
+    // let binding = identifier.trim();
+    //return output;
+}**/
+
+//fn create_json_object() {
+//
+//}
+
 fn main() {
     let mut juris_rdr = Reader::from_path("jargon.csv").unwrap();
     let mut jargons = vec![];
@@ -199,6 +249,7 @@ fn main() {
             id: record_data
                 .get(1)
                 .unwrap().to_string().parse().unwrap(),
+                
                 
             title: record_data.get(0).unwrap().to_string(),
         });
@@ -211,27 +262,7 @@ fn main() {
     let files = get_all_files();
     
 
-    juris_wtr.write_record(&["title","identifier","file_url"]).unwrap();
+    juris_wtr.write_record(&["title","identifier","file_url","year","month","day","gr Number"]).unwrap();
     rel_wtr.write_record(&["juris_id","jargon"]).unwrap();
     let mut counter = 0;
-    
-    for file in files {
-        let juris= get_juris_details(&file, jargons.clone());
-        juris_wtr.write_record(&[juris.title, counter.to_string(),juris.url]).unwrap();
-        for jargon in juris.jargons {
-            rel_wtr.write_record(&[counter.to_string(), jargon.to_string()]).unwrap();
-        }
-        counter+=1;
-        if counter % 500 == 0{
-            println!("{}",counter);
-        }
-    }
-    juris_wtr.flush().unwrap();
-    //let _juris = parse_file(&files[1]);
-    
-    //println!("Title:{} \nid:{}\ncitations:{:?}\n",juris.title, juris.id, juris.citations, );
-    // let split = juris.title.split("VS.");
-    //for piece in split{
-    //    println!("{}",piece);
-    //
-}
+}   
