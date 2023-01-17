@@ -1,0 +1,26 @@
+{
+  "name": "sandigan_upload_file_in_bulk",
+  "version": "1.0.0",
+  "description": "upoads files in sandigan production database which kinda sucks",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KyahWill/sandigan_model.git"
+  },
+  "keywords": [
+    "bulk",
+    "upload"
+  ],
+  "author": "wil vincent parrone",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KyahWill/sandigan_model/issues"
+  },
+  "homepage": "https://github.com/KyahWill/sandigan_model#readme",
+  "dependencies": {
+    "firebase": "^9.15.0"
+  }
+}
