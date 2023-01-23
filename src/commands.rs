@@ -14,7 +14,7 @@ use chrono::Month;
 //     definition: String,
 // }
 pub struct LegalTerm {
-    pub id: usize,
+    pub id: String,
     pub title: String,
 }
 
@@ -23,7 +23,7 @@ pub struct Jurisprudence{
     pub id: String,
     pub title: String,
     pub url: String,
-    pub gr_number: String,
+    pub gr_number: Vec<String>,
     pub year: String,
     pub month: String,
     pub day: String,
@@ -58,7 +58,7 @@ pub fn get_all_legal_words() -> Vec<LegalTerm>{
         jargons.push(LegalTerm {
             id: record_data
                 .get(1)
-                .unwrap().to_string().parse().unwrap(),
+                .unwrap().to_string(),
             title: record_data.get(0).unwrap().to_string(),
         });
     }
@@ -125,6 +125,7 @@ pub fn get_juris_details(html: Html, html_string: String,input_path: DirEntry, i
                         .replace("g. ", "g.")
                         .replace("a. ", "a.")
                         .replace("nos.", "no.")
+                        .replace("  ", " ")
                         .trim()
                         .to_string();
 
@@ -157,7 +158,7 @@ pub fn get_juris_details(html: Html, html_string: String,input_path: DirEntry, i
 
     let output = Jurisprudence{
 
-        id: id.to_string(),
+        id: String::from("juris_")+ id.to_string().as_str(),
         title: result.to_string(),
         url: input_path.path()
                 .file_name()
